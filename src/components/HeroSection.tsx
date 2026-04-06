@@ -1,46 +1,63 @@
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Sparkles } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 
 const BEFORE_IMG = "https://cdn.poehali.dev/files/fd1ae4e9-54bb-45fc-8313-432f72306ba1.png"
 const AFTER_IMG = "https://cdn.poehali.dev/files/a07f25ce-b7bb-4654-8c7c-7716e39c0d6a.png"
 
-// Анимированная полоска прогресса — сколько осталось до следующего переключения
-function ProgressBar({ duration, running }: { duration: number; running: boolean }) {
-  return (
-    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/10 z-30">
-      <div
-        key={running ? "run" : "pause"}
-        className="h-full"
-        style={{
-          background: "linear-gradient(to right, #00ff41, #00cc33)",
-          boxShadow: "0 0 8px #00ff41",
-          animation: running ? `progress-fill ${duration}ms linear forwards` : "none",
-          width: running ? undefined : "0%",
-        }}
-      />
-    </div>
-  )
-}
-
 function BeforeAfterSlider() {
-  const [showAfter, setShowAfter] = useState(false)
-  const DURATION = 3500
+  const [pos, setPos] = useState(50)
+  const [dragging, setDragging] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const autoRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const dirRef = useRef<1 | -1>(1)
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setShowAfter(prev => !prev)
-    }, DURATION)
-    return () => clearInterval(interval)
+  const getPercent = useCallback((clientX: number) => {
+    if (!containerRef.current) return
+    const rect = containerRef.current.getBoundingClientRect()
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width))
+    setPos((x / rect.width) * 100)
   }, [])
 
-  const switchTo = (after: boolean) => {
-    if (after !== showAfter) setShowAfter(after)
+  // Auto-animate ползунок туда-обратно
+  useEffect(() => {
+    autoRef.current = setInterval(() => {
+      if (dragging) return
+      setPos(prev => {
+        const next = prev + dirRef.current * 1.2
+        if (next >= 98) { dirRef.current = -1; return 98 }
+        if (next <= 2)  { dirRef.current =  1; return 2  }
+        return next
+      })
+    }, 16)
+    return () => { if (autoRef.current) clearInterval(autoRef.current) }
+  }, [dragging])
+
+  const stopAuto = () => { if (autoRef.current) clearInterval(autoRef.current) }
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    stopAuto()
+    setDragging(true)
   }
+  const onMouseMove = (e: React.MouseEvent) => { if (dragging) getPercent(e.clientX) }
+  const onTouchStart = () => { stopAuto(); setDragging(true) }
+  const onTouchMove = (e: React.TouchEvent) => getPercent(e.touches[0].clientX)
+
+  useEffect(() => {
+    const up = () => setDragging(false)
+    window.addEventListener("mouseup", up)
+    return () => window.removeEventListener("mouseup", up)
+  }, [])
 
   return (
-    <div className="relative w-full h-full overflow-hidden">
-      {/* AFTER — base layer (always visible beneath) */}
+    <div
+      ref={containerRef}
+      className="relative w-full h-full select-none cursor-col-resize"
+      onMouseMove={onMouseMove}
+      onTouchMove={onTouchMove}
+    >
+      {/* AFTER — base */}
       <img
         src={AFTER_IMG}
         alt="После"
@@ -48,81 +65,61 @@ function BeforeAfterSlider() {
         draggable={false}
       />
 
-      {/* BEFORE — slides out to the right when showAfter=true */}
+      {/* BEFORE — clipped to pos% */}
       <div
         className="absolute inset-0 overflow-hidden"
-        style={{
-          transform: showAfter ? "translateX(100%)" : "translateX(0%)",
-          transition: "transform 0.85s cubic-bezier(0.77, 0, 0.175, 1)",
-        }}
+        style={{ width: `${pos}%` }}
       >
         <img
           src={BEFORE_IMG}
           alt="До"
-          className="absolute inset-0 w-full h-full object-contain"
-          style={{
-            transform: showAfter ? "translateX(-30%)" : "translateX(0%)",
-            transition: "transform 0.85s cubic-bezier(0.77, 0, 0.175, 1)",
-          }}
+          className="absolute inset-0 h-full object-contain"
+          style={{ width: containerRef.current ? `${containerRef.current.offsetWidth}px` : "100vw" }}
           draggable={false}
         />
       </div>
 
-      {/* Glowing edge that travels with the curtain */}
+      {/* Divider line */}
       <div
-        className="absolute top-0 bottom-0 w-[3px] z-20 pointer-events-none"
+        className="absolute top-0 bottom-0 w-[2px] pointer-events-none"
         style={{
-          right: 0,
-          background: "linear-gradient(to bottom, transparent, #00ff41 30%, #00ff41 70%, transparent)",
-          boxShadow: "0 0 16px #00ff41, 0 0 32px #00ff4170",
-          transform: showAfter ? "translateX(100%)" : "translateX(0%)",
-          transition: "transform 0.85s cubic-bezier(0.77, 0, 0.175, 1)",
-          transformOrigin: "right",
+          left: `${pos}%`,
+          background: "linear-gradient(to bottom, transparent, #00ff41 20%, #00ff41 80%, transparent)",
+          boxShadow: "0 0 14px #00ff41, 0 0 28px #00ff4160",
         }}
       />
 
-      {/* Label top-center */}
+      {/* Handle */}
       <div
-        className="absolute top-5 left-1/2 -translate-x-1/2 text-xs font-bold px-5 py-1.5 rounded-full tracking-[0.25em] z-20 pointer-events-none transition-all duration-500"
+        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center z-20 cursor-col-resize"
         style={{
-          background: showAfter ? "rgba(0,255,65,0.12)" : "rgba(255,255,255,0.08)",
-          border: showAfter ? "1px solid #00ff4160" : "1px solid rgba(255,255,255,0.18)",
-          color: showAfter ? "#00ff41" : "rgba(255,255,255,0.75)",
-          boxShadow: showAfter ? "0 0 12px #00ff4130" : "none",
-          backdropFilter: "blur(8px)",
+          left: `${pos}%`,
+          background: "rgba(0,0,0,0.88)",
+          border: "2px solid #00ff41",
+          boxShadow: "0 0 20px #00ff41, 0 0 40px #00ff4150",
         }}
+        onMouseDown={onMouseDown}
+        onTouchStart={onTouchStart}
       >
-        {showAfter ? "ПОСЛЕ" : "ДО"}
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M8 5L3 11L8 17" stroke="#00ff41" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M14 5L19 11L14 17" stroke="#00ff41" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
       </div>
 
-      {/* Toggle buttons */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-        {([false, true] as const).map((isAfter) => (
-          <button
-            key={String(isAfter)}
-            onClick={() => switchTo(isAfter)}
-            className="px-5 py-1.5 rounded-full text-xs font-bold tracking-widest transition-all duration-300"
-            style={{
-              background: showAfter === isAfter
-                ? isAfter ? "rgba(0,255,65,0.18)" : "rgba(255,255,255,0.14)"
-                : "rgba(0,0,0,0.45)",
-              border: showAfter === isAfter
-                ? isAfter ? "1px solid #00ff4165" : "1px solid rgba(255,255,255,0.45)"
-                : "1px solid rgba(255,255,255,0.12)",
-              color: showAfter === isAfter
-                ? isAfter ? "#00ff41" : "white"
-                : "rgba(255,255,255,0.35)",
-              backdropFilter: "blur(8px)",
-              boxShadow: (showAfter === isAfter && isAfter) ? "0 0 10px #00ff4135" : "none",
-            }}
-          >
-            {isAfter ? "ПОСЛЕ" : "ДО"}
-          </button>
-        ))}
+      {/* Labels */}
+      <div
+        className="absolute top-5 left-5 text-xs font-bold px-4 py-1.5 rounded-full tracking-widest pointer-events-none"
+        style={{ background: "rgba(0,0,0,0.65)", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.75)", backdropFilter: "blur(8px)" }}
+      >
+        ДО
       </div>
-
-      {/* Progress bar */}
-      <ProgressBar duration={DURATION} running={true} />
+      <div
+        className="absolute top-5 right-5 text-xs font-bold px-4 py-1.5 rounded-full tracking-widest pointer-events-none"
+        style={{ background: "rgba(0,0,0,0.65)", border: "1px solid #00ff4155", color: "#00ff41", boxShadow: "0 0 10px #00ff4130", backdropFilter: "blur(8px)" }}
+      >
+        ПОСЛЕ
+      </div>
     </div>
   )
 }

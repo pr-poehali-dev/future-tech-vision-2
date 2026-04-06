@@ -61,11 +61,11 @@ function BeforeAfterSlider() {
       <img
         src={AFTER_IMG}
         alt="После"
-        className="absolute inset-0 w-full h-full object-contain"
+        className="absolute inset-0 w-full h-full object-cover"
         draggable={false}
       />
 
-      {/* BEFORE — clipped to pos% */}
+      {/* BEFORE — clipped to pos%, картинка зафиксирована в том же размере */}
       <div
         className="absolute inset-0 overflow-hidden"
         style={{ width: `${pos}%` }}
@@ -73,7 +73,7 @@ function BeforeAfterSlider() {
         <img
           src={BEFORE_IMG}
           alt="До"
-          className="absolute inset-0 h-full object-contain"
+          className="absolute inset-0 h-full object-cover"
           style={{ width: containerRef.current ? `${containerRef.current.offsetWidth}px` : "100vw" }}
           draggable={false}
         />

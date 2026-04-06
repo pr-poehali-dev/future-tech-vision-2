@@ -135,6 +135,16 @@
   animation: float 6s ease-in-out infinite;
 }
 
+/* Matrix scanline animation */
+@keyframes scanline {
+  from {
+    top: 0%;
+  }
+  to {
+    top: 100%;
+  }
+}
+
 /* Grid pattern for process section */
 .bg-grid-pattern {
   background-image:

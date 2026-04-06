@@ -1,94 +1,107 @@
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Sparkles } from "lucide-react"
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
 
 const BEFORE_IMG = "https://cdn.poehali.dev/files/fd1ae4e9-54bb-45fc-8313-432f72306ba1.png"
 const AFTER_IMG = "https://cdn.poehali.dev/files/a07f25ce-b7bb-4654-8c7c-7716e39c0d6a.png"
 
 function BeforeAfterSlider() {
-  const [pos, setPos] = useState(50)
-  const [dragging, setDragging] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [showAfter, setShowAfter] = useState(false)
+  const [transitioning, setTransitioning] = useState(false)
 
-  const getPos = (clientX: number) => {
-    if (!containerRef.current) return
-    const rect = containerRef.current.getBoundingClientRect()
-    const x = Math.max(0, Math.min(clientX - rect.left, rect.width))
-    setPos((x / rect.width) * 100)
-  }
-
-  const onMouseDown = (e: React.MouseEvent) => { e.preventDefault(); setDragging(true) }
-  const onMouseMove = (e: React.MouseEvent) => { if (dragging) getPos(e.clientX) }
-  const onTouchMove = (e: React.TouchEvent) => getPos(e.touches[0].clientX)
-
+  // Auto-flip every 3s
   useEffect(() => {
-    const up = () => setDragging(false)
-    window.addEventListener("mouseup", up)
-    return () => window.removeEventListener("mouseup", up)
+    const interval = setInterval(() => {
+      setTransitioning(true)
+      setTimeout(() => {
+        setShowAfter(prev => !prev)
+        setTransitioning(false)
+      }, 400)
+    }, 3000)
+    return () => clearInterval(interval)
   }, [])
 
+  const switchTo = (after: boolean) => {
+    if (after === showAfter) return
+    setTransitioning(true)
+    setTimeout(() => {
+      setShowAfter(after)
+      setTransitioning(false)
+    }, 400)
+  }
+
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full h-full cursor-col-resize select-none"
-      onMouseMove={onMouseMove}
-      onTouchMove={onTouchMove}
-    >
-      {/* AFTER (base layer) */}
+    <div className="relative w-full h-full">
+      {/* Images */}
+      <img
+        src={BEFORE_IMG}
+        alt="До"
+        className="absolute inset-0 w-full h-full object-contain transition-all duration-500"
+        style={{ opacity: showAfter ? 0 : (transitioning ? 0 : 1) }}
+        draggable={false}
+      />
       <img
         src={AFTER_IMG}
         alt="После"
-        className="absolute inset-0 w-full h-full object-contain"
+        className="absolute inset-0 w-full h-full object-contain transition-all duration-500"
+        style={{ opacity: showAfter ? (transitioning ? 0 : 1) : 0 }}
         draggable={false}
       />
 
-      {/* BEFORE (clipped layer) */}
-      <div className="absolute inset-0 overflow-hidden" style={{ width: `${pos}%` }}>
-        <img
-          src={BEFORE_IMG}
-          alt="До"
-          className="absolute inset-0 h-full object-contain"
-          style={{ width: containerRef.current ? `${containerRef.current.offsetWidth}px` : "100vw" }}
-          draggable={false}
-        />
-      </div>
+      {/* Scan-line effect on transition */}
+      {transitioning && (
+        <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+          <div
+            className="absolute left-0 right-0 h-1"
+            style={{
+              background: "linear-gradient(to right, transparent, #00ff41, transparent)",
+              boxShadow: "0 0 20px #00ff41",
+              animation: "scanline 0.4s linear forwards"
+            }}
+          />
+        </div>
+      )}
 
-      {/* Divider line with matrix glow */}
+      {/* Active label */}
       <div
-        className="absolute top-0 bottom-0 w-[2px]"
+        className="absolute top-6 left-1/2 -translate-x-1/2 text-xs font-bold px-5 py-2 rounded-full tracking-[0.3em] transition-all duration-300"
         style={{
-          left: `${pos}%`,
-          background: "linear-gradient(to bottom, transparent 0%, #00ff41 30%, #00ff41 70%, transparent 100%)",
-          boxShadow: "0 0 12px #00ff41, 0 0 24px #00ff4160"
+          background: showAfter ? "rgba(0,255,65,0.15)" : "rgba(255,255,255,0.08)",
+          border: showAfter ? "1px solid #00ff4170" : "1px solid rgba(255,255,255,0.2)",
+          color: showAfter ? "#00ff41" : "rgba(255,255,255,0.7)",
+          boxShadow: showAfter ? "0 0 15px #00ff4130" : "none"
         }}
-      />
-
-      {/* Handle */}
-      <div
-        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center cursor-col-resize z-20"
-        style={{
-          left: `${pos}%`,
-          background: "rgba(0,0,0,0.85)",
-          border: "2px solid #00ff41",
-          boxShadow: "0 0 20px #00ff41, 0 0 40px #00ff4140"
-        }}
-        onMouseDown={onMouseDown}
-        onTouchStart={() => setDragging(true)}
       >
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-          <path d="M8 5L3 11L8 17" stroke="#00ff41" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M14 5L19 11L14 17" stroke="#00ff41" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
+        {showAfter ? "ПОСЛЕ" : "ДО"}
       </div>
 
-      {/* Labels */}
-      <div className="absolute top-6 left-6 text-sm font-bold px-4 py-1.5 rounded-full backdrop-blur-sm tracking-widest text-white/70"
-        style={{ background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.15)" }}>
-        ДО
-      </div>
-      <div className="absolute top-6 right-6 text-sm font-bold px-4 py-1.5 rounded-full backdrop-blur-sm tracking-widest"
-        style={{ background: "rgba(0,0,0,0.7)", border: "1px solid #00ff4150", color: "#00ff41", boxShadow: "0 0 10px #00ff4130" }}>
-        ПОСЛЕ
+      {/* Toggle buttons */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        <button
+          onClick={() => switchTo(false)}
+          className="px-5 py-2 rounded-full text-xs font-bold tracking-widest transition-all duration-300"
+          style={{
+            background: !showAfter ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.5)",
+            border: !showAfter ? "1px solid rgba(255,255,255,0.5)" : "1px solid rgba(255,255,255,0.15)",
+            color: !showAfter ? "white" : "rgba(255,255,255,0.4)",
+            backdropFilter: "blur(8px)"
+          }}
+        >
+          ДО
+        </button>
+        <button
+          onClick={() => switchTo(true)}
+          className="px-5 py-2 rounded-full text-xs font-bold tracking-widest transition-all duration-300"
+          style={{
+            background: showAfter ? "rgba(0,255,65,0.2)" : "rgba(0,0,0,0.5)",
+            border: showAfter ? "1px solid #00ff4170" : "1px solid rgba(255,255,255,0.15)",
+            color: showAfter ? "#00ff41" : "rgba(255,255,255,0.4)",
+            backdropFilter: "blur(8px)",
+            boxShadow: showAfter ? "0 0 12px #00ff4140" : "none"
+          }}
+        >
+          ПОСЛЕ
+        </button>
       </div>
     </div>
   )

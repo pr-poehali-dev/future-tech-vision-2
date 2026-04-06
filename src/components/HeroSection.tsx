@@ -144,15 +144,7 @@ export function HeroSection() {
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </a>
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="font-semibold px-7 py-5 text-base bg-black/50 backdrop-blur-sm text-white hover:bg-white/10"
-                style={{ border: "1px solid rgba(255,255,255,0.2)" }}
-                asChild
-              >
-                <a href="#portfolio">Наши работы</a>
-              </Button>
+
             </div>
           </div>
 

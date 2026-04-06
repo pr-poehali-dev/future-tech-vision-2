@@ -9,8 +9,6 @@ function BeforeAfterSlider() {
   const [pos, setPos] = useState(50)
   const [dragging, setDragging] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const autoRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const dirRef = useRef<1 | -1>(1)
 
   const getPercent = useCallback((clientX: number) => {
     if (!containerRef.current) return
@@ -19,29 +17,9 @@ function BeforeAfterSlider() {
     setPos((x / rect.width) * 100)
   }, [])
 
-  // Auto-animate ползунок туда-обратно
-  useEffect(() => {
-    autoRef.current = setInterval(() => {
-      if (dragging) return
-      setPos(prev => {
-        const next = prev + dirRef.current * 1.2
-        if (next >= 98) { dirRef.current = -1; return 98 }
-        if (next <= 2)  { dirRef.current =  1; return 2  }
-        return next
-      })
-    }, 16)
-    return () => { if (autoRef.current) clearInterval(autoRef.current) }
-  }, [dragging])
-
-  const stopAuto = () => { if (autoRef.current) clearInterval(autoRef.current) }
-
-  const onMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault()
-    stopAuto()
-    setDragging(true)
-  }
+  const onMouseDown = (e: React.MouseEvent) => { e.preventDefault(); setDragging(true) }
   const onMouseMove = (e: React.MouseEvent) => { if (dragging) getPercent(e.clientX) }
-  const onTouchStart = () => { stopAuto(); setDragging(true) }
+  const onTouchStart = () => setDragging(true)
   const onTouchMove = (e: React.TouchEvent) => getPercent(e.touches[0].clientX)
 
   useEffect(() => {

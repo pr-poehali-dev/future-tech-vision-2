@@ -111,7 +111,7 @@ export function HeroSection() {
       {/* Content at bottom */}
       <div className="absolute bottom-0 left-0 right-0 z-20 px-6 pb-10">
         <div className="container mx-auto max-w-5xl">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6">
+          <div className="flex flex-col items-center text-center gap-6">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 animate-fade-in-up"
                 style={{ background: "rgba(0,255,65,0.08)", border: "1px solid rgba(0,255,65,0.3)" }}>
@@ -127,12 +127,12 @@ export function HeroSection() {
                   </svg>
                 </span>
               </h1>
-              <p className="text-base sm:text-lg text-white/50 max-w-xl animate-fade-in-up animate-delay-100 leading-relaxed">
+              <p className="text-base sm:text-lg text-white/50 max-w-xl mx-auto animate-fade-in-up animate-delay-100 leading-relaxed">
                 Разрабатываем сайты полного цикла, которые привлекают клиентов и увеличивают вашу выручку.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 animate-fade-in-up animate-delay-200 shrink-0">
+            <div className="flex flex-col sm:flex-row gap-3 animate-fade-in-up animate-delay-200">
               <Button
                 size="lg"
                 className="font-semibold px-7 py-5 text-base group transition-all text-black hover:text-black hover:opacity-90"
@@ -140,7 +140,7 @@ export function HeroSection() {
                 asChild
               >
                 <a href="#contact">
-                  Получить сайт
+                  Заказать консультацию
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </a>
               </Button>

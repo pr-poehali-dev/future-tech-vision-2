@@ -35,27 +35,22 @@ function BeforeAfterSlider() {
       onMouseMove={onMouseMove}
       onTouchMove={onTouchMove}
     >
-      {/* AFTER — base */}
+      {/* AFTER — полный размер, без масштабирования */}
       <img
         src={AFTER_IMG}
         alt="После"
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-contain"
         draggable={false}
       />
 
-      {/* BEFORE — clipped to pos%, картинка зафиксирована в том же размере */}
-      <div
-        className="absolute inset-0 overflow-hidden"
-        style={{ width: `${pos}%` }}
-      >
-        <img
-          src={BEFORE_IMG}
-          alt="До"
-          className="absolute inset-0 h-full object-cover"
-          style={{ width: containerRef.current ? `${containerRef.current.offsetWidth}px` : "100vw" }}
-          draggable={false}
-        />
-      </div>
+      {/* BEFORE — тот же размер, обрезается по ползунку через clip-path */}
+      <img
+        src={BEFORE_IMG}
+        alt="До"
+        className="absolute inset-0 w-full h-full object-contain"
+        style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}
+        draggable={false}
+      />
 
       {/* Divider line */}
       <div

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -43,26 +43,26 @@
   }
 
   .dark {
-    /* Custom color palette for CodeCraft dark mode */
-    --background: 240 10% 9%; /* #0E131F */
-    --foreground: 0 0% 98%;
-    --card: 240 10% 13%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 11%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 350 100% 50%; /* Bright red #FF0035 */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 10% 22%; /* #38405F */
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 10% 26%; /* #59546C */
-    --muted-foreground: 240 5% 55%; /* #8B939C */
-    --accent: 350 100% 50%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 350 100% 50%;
+    /* Matrix theme */
+    --background: 0 0% 4%; /* near black */
+    --foreground: 120 60% 90%; /* light green tint */
+    --card: 0 0% 7%;
+    --card-foreground: 120 60% 90%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 120 60% 90%;
+    --primary: 127 100% 50%; /* #00ff41 matrix green */
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 120 60% 85%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 120 20% 55%;
+    --accent: 127 100% 50%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 10% 22%;
-    --input: 240 10% 22%;
-    --ring: 350 100% 50%;
+    --border: 127 30% 18%;
+    --input: 0 0% 14%;
+    --ring: 127 100% 50%;
     --chart-1: 350 100% 50%;
     --chart-2: 240 10% 35%;
     --chart-3: 240 10% 45%;

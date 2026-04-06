@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Sparkles, Code2, Palette } from "lucide-react"
+import { ArrowRight, Sparkles } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 
 const BEFORE_IMG = "https://cdn.poehali.dev/files/fd1ae4e9-54bb-45fc-8313-432f72306ba1.png"
@@ -17,8 +17,7 @@ function BeforeAfterSlider() {
     setPos((x / rect.width) * 100)
   }
 
-  const onMouseDown = () => setDragging(true)
-  const onMouseUp = () => setDragging(false)
+  const onMouseDown = (e: React.MouseEvent) => { e.preventDefault(); setDragging(true) }
   const onMouseMove = (e: React.MouseEvent) => { if (dragging) getPos(e.clientX) }
   const onTouchMove = (e: React.TouchEvent) => getPos(e.touches[0].clientX)
 
@@ -31,134 +30,137 @@ function BeforeAfterSlider() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full max-w-lg mx-auto rounded-2xl overflow-hidden cursor-col-resize select-none shadow-2xl border border-primary/20"
-      style={{ aspectRatio: "1/1" }}
+      className="relative w-full h-full cursor-col-resize select-none"
       onMouseMove={onMouseMove}
       onTouchMove={onTouchMove}
     >
-      {/* AFTER (bottom layer) */}
-      <img src={AFTER_IMG} alt="После" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+      {/* AFTER (base layer) */}
+      <img
+        src={AFTER_IMG}
+        alt="После"
+        className="absolute inset-0 w-full h-full object-contain"
+        draggable={false}
+      />
 
-      {/* BEFORE (clipped top layer) */}
+      {/* BEFORE (clipped layer) */}
       <div className="absolute inset-0 overflow-hidden" style={{ width: `${pos}%` }}>
-        <img src={BEFORE_IMG} alt="До" className="absolute inset-0 h-full object-cover" style={{ width: containerRef.current ? `${containerRef.current.offsetWidth}px` : "100%" }} draggable={false} />
+        <img
+          src={BEFORE_IMG}
+          alt="До"
+          className="absolute inset-0 h-full object-contain"
+          style={{ width: containerRef.current ? `${containerRef.current.offsetWidth}px` : "100vw" }}
+          draggable={false}
+        />
       </div>
 
-      {/* Divider line */}
-      <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg" style={{ left: `${pos}%` }} />
+      {/* Divider line with matrix glow */}
+      <div
+        className="absolute top-0 bottom-0 w-[2px]"
+        style={{
+          left: `${pos}%`,
+          background: "linear-gradient(to bottom, transparent 0%, #00ff41 30%, #00ff41 70%, transparent 100%)",
+          boxShadow: "0 0 12px #00ff41, 0 0 24px #00ff4160"
+        }}
+      />
 
       {/* Handle */}
       <div
-        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 bg-white rounded-full shadow-xl flex items-center justify-center cursor-col-resize z-10 border-2 border-primary/30"
-        style={{ left: `${pos}%` }}
+        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center cursor-col-resize z-20"
+        style={{
+          left: `${pos}%`,
+          background: "rgba(0,0,0,0.85)",
+          border: "2px solid #00ff41",
+          boxShadow: "0 0 20px #00ff41, 0 0 40px #00ff4140"
+        }}
         onMouseDown={onMouseDown}
         onTouchStart={() => setDragging(true)}
       >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M7 5L3 10L7 15" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M13 5L17 10L13 15" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M8 5L3 11L8 17" stroke="#00ff41" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M14 5L19 11L14 17" stroke="#00ff41" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </div>
 
       {/* Labels */}
-      <div className="absolute top-3 left-3 bg-black/60 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-sm">ДО</div>
-      <div className="absolute top-3 right-3 bg-primary/80 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-sm">ПОСЛЕ</div>
+      <div className="absolute top-6 left-6 text-sm font-bold px-4 py-1.5 rounded-full backdrop-blur-sm tracking-widest text-white/70"
+        style={{ background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.15)" }}>
+        ДО
+      </div>
+      <div className="absolute top-6 right-6 text-sm font-bold px-4 py-1.5 rounded-full backdrop-blur-sm tracking-widest"
+        style={{ background: "rgba(0,0,0,0.7)", border: "1px solid #00ff4150", color: "#00ff41", boxShadow: "0 0 10px #00ff4130" }}>
+        ПОСЛЕ
+      </div>
     </div>
   )
 }
 
 export function HeroSection() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY })
-    }
-    window.addEventListener("mousemove", handleMouseMove)
-    return () => window.removeEventListener("mousemove", handleMouseMove)
-  }, [])
-
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-[500px] h-[500px] rounded-full bg-muted/40 blur-3xl animate-pulse" style={{ top: "20%", left: "10%", animationDuration: "4s" }} />
-        <div className="absolute w-[400px] h-[400px] rounded-full bg-muted/30 blur-3xl animate-pulse" style={{ bottom: "10%", right: "15%", animationDuration: "6s", animationDelay: "1s" }} />
-        <div
-          className="absolute w-[300px] h-[300px] rounded-full bg-muted/20 blur-3xl transition-all duration-1000 ease-out"
-          style={{ left: `${mousePosition.x - 150}px`, top: `${mousePosition.y - 150}px` }}
-        />
-      </div>
+    <section className="relative w-full h-screen flex overflow-hidden bg-black">
+      {/* Full-screen before/after slider */}
+      <BeforeAfterSlider />
 
-      <div className="absolute inset-0 pointer-events-none">
-        <Code2 className="absolute text-muted-foreground/30 animate-float" style={{ top: "15%", left: "5%", animationDelay: "0s" }} size={40} />
-        <Palette className="absolute text-muted-foreground/30 animate-float" style={{ top: "25%", right: "5%", animationDelay: "2s" }} size={35} />
-        <Sparkles className="absolute text-muted-foreground/30 animate-float" style={{ bottom: "20%", left: "8%", animationDelay: "1s" }} size={30} />
-      </div>
+      {/* Gradient overlay for readability */}
+      <div className="absolute inset-0 pointer-events-none z-10"
+        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.35) 100%)" }}
+      />
 
-      <div className="container mx-auto max-w-6xl relative z-10">
-        <div className="flex flex-col lg:flex-row items-center gap-12">
-          {/* Left: text */}
-          <div className="flex-1 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in-up">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Веб-студия полного цикла</span>
+      {/* Content at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 px-6 pb-10">
+        <div className="container mx-auto max-w-5xl">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 animate-fade-in-up"
+                style={{ background: "rgba(0,255,65,0.08)", border: "1px solid rgba(0,255,65,0.3)" }}>
+                <Sparkles className="w-3.5 h-3.5" style={{ color: "#00ff41" }} />
+                <span className="text-xs font-medium" style={{ color: "#00ff41" }}>Веб-студия полного цикла</span>
+              </div>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-3 animate-fade-in-up text-white">
+                Сайты, которые{" "}
+                <span className="relative inline-block" style={{ color: "#00ff41", textShadow: "0 0 30px #00ff4180" }}>
+                  продают
+                  <svg className="absolute -bottom-1 left-0 w-full" height="10" viewBox="0 0 200 10" fill="none">
+                    <path d="M2 8C50 3 150 3 198 8" stroke="#00ff41" strokeWidth="2.5" strokeLinecap="round" />
+                  </svg>
+                </span>
+              </h1>
+              <p className="text-base sm:text-lg text-white/50 max-w-xl animate-fade-in-up animate-delay-100 leading-relaxed">
+                Разрабатываем сайты полного цикла, которые привлекают клиентов и увеличивают вашу выручку.
+              </p>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 animate-fade-in-up text-balance">
-              Сайты, которые{" "}
-              <span className="text-primary relative inline-block">
-                продают
-                <svg className="absolute -bottom-2 left-0 w-full" height="12" viewBox="0 0 200 12" fill="none">
-                  <path d="M2 10C50 5 150 5 198 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="text-primary" />
-                </svg>
-              </span>
-            </h1>
-
-            <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-xl animate-fade-in-up animate-delay-100 leading-relaxed">
-              Разрабатываем сайты полного цикла, которые привлекают клиентов и увеличивают вашу выручку. От идеи до результата.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center animate-fade-in-up animate-delay-200 mb-10">
+            <div className="flex flex-col sm:flex-row gap-3 animate-fade-in-up animate-delay-200 shrink-0">
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-6 text-lg group shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                className="font-semibold px-7 py-5 text-base group transition-all text-black hover:text-black hover:opacity-90"
+                style={{ background: "#00ff41", boxShadow: "0 0 20px #00ff4160" }}
                 asChild
               >
                 <a href="#contact">
                   Получить сайт
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </a>
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="border-2 border-primary/20 text-foreground hover:bg-primary/5 hover:border-primary font-semibold px-8 py-6 text-lg backdrop-blur-sm bg-transparent"
+                className="font-semibold px-7 py-5 text-base bg-black/50 backdrop-blur-sm text-white hover:bg-white/10"
+                style={{ border: "1px solid rgba(255,255,255,0.2)" }}
                 asChild
               >
                 <a href="#portfolio">Наши работы</a>
               </Button>
             </div>
-
-            <div className="flex flex-wrap justify-center lg:justify-start items-center gap-6 text-sm text-muted-foreground animate-fade-in-up animate-delay-300">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span>50+ проектов</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.5s" }} />
-                <span>45+ довольных клиентов</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "1s" }} />
-                <span>Рост продаж у 90% клиентов</span>
-              </div>
-            </div>
           </div>
 
-          {/* Right: before/after slider */}
-          <div className="flex-1 w-full max-w-lg animate-fade-in-up animate-delay-200">
-            <p className="text-center text-sm text-muted-foreground mb-3">Потяните ползунок, чтобы увидеть разницу</p>
-            <BeforeAfterSlider />
+          <div className="flex flex-wrap gap-6 mt-5 text-sm text-white/40 animate-fade-in-up animate-delay-300">
+            {["50+ проектов", "45+ довольных клиентов", "Рост продаж у 90% клиентов"].map((stat, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full animate-pulse"
+                  style={{ background: "#00ff41", boxShadow: "0 0 6px #00ff41", animationDelay: `${i * 0.4}s` }} />
+                <span>{stat}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

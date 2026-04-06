@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/Navbar"
 import { HeroSection } from "@/components/HeroSection"
+import { MatrixRain } from "@/components/MatrixRain"
 import { ServicesSection } from "@/components/ServicesSection"
 import { AboutSection } from "@/components/AboutSection"
 import { ProcessSection } from "@/components/ProcessSection"
@@ -12,6 +13,7 @@ import { Footer } from "@/components/Footer"
 export default function Index() {
   return (
     <main className="min-h-screen">
+      <MatrixRain />
       <Navbar />
       <HeroSection />
       <ServicesSection />

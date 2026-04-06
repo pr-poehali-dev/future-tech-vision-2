@@ -5,104 +5,124 @@ import { useEffect, useState } from "react"
 const BEFORE_IMG = "https://cdn.poehali.dev/files/fd1ae4e9-54bb-45fc-8313-432f72306ba1.png"
 const AFTER_IMG = "https://cdn.poehali.dev/files/a07f25ce-b7bb-4654-8c7c-7716e39c0d6a.png"
 
+// Анимированная полоска прогресса — сколько осталось до следующего переключения
+function ProgressBar({ duration, running }: { duration: number; running: boolean }) {
+  return (
+    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/10 z-30">
+      <div
+        key={running ? "run" : "pause"}
+        className="h-full"
+        style={{
+          background: "linear-gradient(to right, #00ff41, #00cc33)",
+          boxShadow: "0 0 8px #00ff41",
+          animation: running ? `progress-fill ${duration}ms linear forwards` : "none",
+          width: running ? undefined : "0%",
+        }}
+      />
+    </div>
+  )
+}
+
 function BeforeAfterSlider() {
   const [showAfter, setShowAfter] = useState(false)
-  const [transitioning, setTransitioning] = useState(false)
+  const DURATION = 3500
 
-  // Auto-flip every 3s
   useEffect(() => {
     const interval = setInterval(() => {
-      setTransitioning(true)
-      setTimeout(() => {
-        setShowAfter(prev => !prev)
-        setTransitioning(false)
-      }, 400)
-    }, 3000)
+      setShowAfter(prev => !prev)
+    }, DURATION)
     return () => clearInterval(interval)
   }, [])
 
   const switchTo = (after: boolean) => {
-    if (after === showAfter) return
-    setTransitioning(true)
-    setTimeout(() => {
-      setShowAfter(after)
-      setTransitioning(false)
-    }, 400)
+    if (after !== showAfter) setShowAfter(after)
   }
 
   return (
-    <div className="relative w-full h-full">
-      {/* Images */}
-      <img
-        src={BEFORE_IMG}
-        alt="До"
-        className="absolute inset-0 w-full h-full object-contain transition-all duration-500"
-        style={{ opacity: showAfter ? 0 : (transitioning ? 0 : 1) }}
-        draggable={false}
-      />
+    <div className="relative w-full h-full overflow-hidden">
+      {/* AFTER — base layer (always visible beneath) */}
       <img
         src={AFTER_IMG}
         alt="После"
-        className="absolute inset-0 w-full h-full object-contain transition-all duration-500"
-        style={{ opacity: showAfter ? (transitioning ? 0 : 1) : 0 }}
+        className="absolute inset-0 w-full h-full object-contain"
         draggable={false}
       />
 
-      {/* Scan-line effect on transition */}
-      {transitioning && (
-        <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
-          <div
-            className="absolute left-0 right-0 h-1"
-            style={{
-              background: "linear-gradient(to right, transparent, #00ff41, transparent)",
-              boxShadow: "0 0 20px #00ff41",
-              animation: "scanline 0.4s linear forwards"
-            }}
-          />
-        </div>
-      )}
-
-      {/* Active label */}
+      {/* BEFORE — slides out to the right when showAfter=true */}
       <div
-        className="absolute top-6 left-1/2 -translate-x-1/2 text-xs font-bold px-5 py-2 rounded-full tracking-[0.3em] transition-all duration-300"
+        className="absolute inset-0 overflow-hidden"
         style={{
-          background: showAfter ? "rgba(0,255,65,0.15)" : "rgba(255,255,255,0.08)",
-          border: showAfter ? "1px solid #00ff4170" : "1px solid rgba(255,255,255,0.2)",
-          color: showAfter ? "#00ff41" : "rgba(255,255,255,0.7)",
-          boxShadow: showAfter ? "0 0 15px #00ff4130" : "none"
+          transform: showAfter ? "translateX(100%)" : "translateX(0%)",
+          transition: "transform 0.85s cubic-bezier(0.77, 0, 0.175, 1)",
+        }}
+      >
+        <img
+          src={BEFORE_IMG}
+          alt="До"
+          className="absolute inset-0 w-full h-full object-contain"
+          style={{
+            transform: showAfter ? "translateX(-30%)" : "translateX(0%)",
+            transition: "transform 0.85s cubic-bezier(0.77, 0, 0.175, 1)",
+          }}
+          draggable={false}
+        />
+      </div>
+
+      {/* Glowing edge that travels with the curtain */}
+      <div
+        className="absolute top-0 bottom-0 w-[3px] z-20 pointer-events-none"
+        style={{
+          right: 0,
+          background: "linear-gradient(to bottom, transparent, #00ff41 30%, #00ff41 70%, transparent)",
+          boxShadow: "0 0 16px #00ff41, 0 0 32px #00ff4170",
+          transform: showAfter ? "translateX(100%)" : "translateX(0%)",
+          transition: "transform 0.85s cubic-bezier(0.77, 0, 0.175, 1)",
+          transformOrigin: "right",
+        }}
+      />
+
+      {/* Label top-center */}
+      <div
+        className="absolute top-5 left-1/2 -translate-x-1/2 text-xs font-bold px-5 py-1.5 rounded-full tracking-[0.25em] z-20 pointer-events-none transition-all duration-500"
+        style={{
+          background: showAfter ? "rgba(0,255,65,0.12)" : "rgba(255,255,255,0.08)",
+          border: showAfter ? "1px solid #00ff4160" : "1px solid rgba(255,255,255,0.18)",
+          color: showAfter ? "#00ff41" : "rgba(255,255,255,0.75)",
+          boxShadow: showAfter ? "0 0 12px #00ff4130" : "none",
+          backdropFilter: "blur(8px)",
         }}
       >
         {showAfter ? "ПОСЛЕ" : "ДО"}
       </div>
 
       {/* Toggle buttons */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-        <button
-          onClick={() => switchTo(false)}
-          className="px-5 py-2 rounded-full text-xs font-bold tracking-widest transition-all duration-300"
-          style={{
-            background: !showAfter ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.5)",
-            border: !showAfter ? "1px solid rgba(255,255,255,0.5)" : "1px solid rgba(255,255,255,0.15)",
-            color: !showAfter ? "white" : "rgba(255,255,255,0.4)",
-            backdropFilter: "blur(8px)"
-          }}
-        >
-          ДО
-        </button>
-        <button
-          onClick={() => switchTo(true)}
-          className="px-5 py-2 rounded-full text-xs font-bold tracking-widest transition-all duration-300"
-          style={{
-            background: showAfter ? "rgba(0,255,65,0.2)" : "rgba(0,0,0,0.5)",
-            border: showAfter ? "1px solid #00ff4170" : "1px solid rgba(255,255,255,0.15)",
-            color: showAfter ? "#00ff41" : "rgba(255,255,255,0.4)",
-            backdropFilter: "blur(8px)",
-            boxShadow: showAfter ? "0 0 12px #00ff4140" : "none"
-          }}
-        >
-          ПОСЛЕ
-        </button>
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+        {([false, true] as const).map((isAfter) => (
+          <button
+            key={String(isAfter)}
+            onClick={() => switchTo(isAfter)}
+            className="px-5 py-1.5 rounded-full text-xs font-bold tracking-widest transition-all duration-300"
+            style={{
+              background: showAfter === isAfter
+                ? isAfter ? "rgba(0,255,65,0.18)" : "rgba(255,255,255,0.14)"
+                : "rgba(0,0,0,0.45)",
+              border: showAfter === isAfter
+                ? isAfter ? "1px solid #00ff4165" : "1px solid rgba(255,255,255,0.45)"
+                : "1px solid rgba(255,255,255,0.12)",
+              color: showAfter === isAfter
+                ? isAfter ? "#00ff41" : "white"
+                : "rgba(255,255,255,0.35)",
+              backdropFilter: "blur(8px)",
+              boxShadow: (showAfter === isAfter && isAfter) ? "0 0 10px #00ff4135" : "none",
+            }}
+          >
+            {isAfter ? "ПОСЛЕ" : "ДО"}
+          </button>
+        ))}
       </div>
+
+      {/* Progress bar */}
+      <ProgressBar duration={DURATION} running={true} />
     </div>
   )
 }

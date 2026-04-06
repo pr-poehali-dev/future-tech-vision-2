@@ -145,6 +145,16 @@
   }
 }
 
+/* Progress bar fill */
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
 /* Grid pattern for process section */
 .bg-grid-pattern {
   background-image:
